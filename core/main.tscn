@@ -1,0 +1,101 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://particles/particle manager.gd" type="Script" id=1]
+[ext_resource path="res://multiplayer/multiplayer.gd" type="Script" id=2]
+[ext_resource path="res://core/chunk manager.gd" type="Script" id=3]
+[ext_resource path="res://player/hotbar.gd" type="Script" id=4]
+[ext_resource path="res://particles/particle.tscn" type="PackedScene" id=5]
+[ext_resource path="res://player/player.tscn" type="PackedScene" id=6]
+[ext_resource path="res://fonts/OpenSans-Regular.ttf" type="DynamicFontData" id=7]
+[ext_resource path="res://blocks.png" type="Texture" id=8]
+
+[sub_resource type="AtlasTexture" id=1]
+atlas = ExtResource( 8 )
+region = Rect2( 0, 0, 16, 16 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 24
+font_data = ExtResource( 7 )
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource( 2 )
+server = true
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+position = Vector2( 0, 6000 )
+color = Color( 0.0392157, 0.835294, 0.964706, 1 )
+polygon = PoolVector2Array( -4000, -4000, 4000, -4000, 4000, 4000, -4000, 4000 )
+
+[node name="particles" type="Node2D" parent="."]
+script = ExtResource( 1 )
+particles = ExtResource( 5 )
+
+[node name="chunks" type="Node2D" parent="."]
+script = ExtResource( 3 )
+player_path = NodePath("../player")
+particle_path = NodePath("../particles")
+hot_bar_path = NodePath("../CanvasLayer/Control/hotbar/TextureRect")
+
+[node name="players" type="Node2D" parent="."]
+
+[node name="player" parent="." instance=ExtResource( 6 )]
+position = Vector2( 0, 6000 )
+
+[node name="RemoteTransform2D" type="RemoteTransform2D" parent="player"]
+remote_path = NodePath("../../Polygon2D")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="hotbar" type="Control" parent="CanvasLayer/Control"]
+anchor_top = 1.0
+anchor_bottom = 1.0
+margin_top = -60.0
+margin_right = 60.0
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Control/hotbar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = SubResource( 1 )
+stretch_mode = 1
+script = ExtResource( 4 )
+
+[node name="saveload" type="Control" parent="CanvasLayer/Control"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="save" type="Button" parent="CanvasLayer/Control/saveload"]
+margin_right = 50.0
+margin_bottom = 20.0
+text = "save"
+
+[node name="load" type="Button" parent="CanvasLayer/Control/saveload"]
+margin_left = 50.0
+margin_right = 100.0
+margin_bottom = 20.0
+text = "load"
+
+[node name="MenuButton" type="MenuButton" parent="CanvasLayer/Control"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -105.0
+margin_bottom = 51.0
+custom_fonts/font = SubResource( 2 )
+text = "teleport"
+
+[node name="Autosave" type="Timer" parent="."]
+wait_time = 5.0
+autostart = true
+
+[node name="Tick" type="Timer" parent="."]
+wait_time = 0.05
+autostart = true
+
+[connection signal="pressed" from="CanvasLayer/Control/saveload/save" to="chunks" method="save"]
+[connection signal="pressed" from="CanvasLayer/Control/saveload/load" to="chunks" method="load_world"]
+[connection signal="timeout" from="Autosave" to="chunks" method="save"]
+[connection signal="timeout" from="Tick" to="chunks" method="tick"]
